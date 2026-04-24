@@ -16,6 +16,7 @@ import (
 	tokenauth "github.com/vjt/spiritualmeet/internal/platform/auth"
 	"github.com/vjt/spiritualmeet/internal/platform/config"
 	"github.com/vjt/spiritualmeet/internal/platform/database"
+	"github.com/vjt/spiritualmeet/internal/platform/redisconn"
 	"github.com/vjt/spiritualmeet/internal/platform/realtime"
 )
 
@@ -38,16 +39,10 @@ func main() {
 		}
 	}
 
-	redisClient := redis.NewClient(&redis.Options{
-		Addr:     cfg.RedisAddr,
-		Password: cfg.RedisPassword,
-	})
+	redisClient := redis.NewClient(redisconn.ClientOptions(cfg))
 	defer redisClient.Close()
 
-	asynqClient := asynq.NewClient(asynq.RedisClientOpt{
-		Addr:     cfg.RedisAddr,
-		Password: cfg.RedisPassword,
-	})
+	asynqClient := asynq.NewClient(redisconn.AsynqRedisOpt(cfg))
 	defer asynqClient.Close()
 
 	server := app.NewServer(

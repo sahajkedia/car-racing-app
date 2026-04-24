@@ -5,9 +5,11 @@ import "testing"
 func TestLoadDefaults(t *testing.T) {
 	t.Setenv("APP_ENV", "")
 	t.Setenv("HTTP_ADDR", "")
+	t.Setenv("PORT", "")
 	t.Setenv("POSTGRES_DSN", "")
 	t.Setenv("REDIS_ADDR", "")
 	t.Setenv("REDIS_PASSWORD", "")
+	t.Setenv("REDIS_TLS", "")
 	t.Setenv("JWT_SECRET", "")
 	t.Setenv("AUTO_MIGRATE", "")
 	t.Setenv("MESSAGE_REQUESTS_PER_MINUTE", "")
@@ -33,6 +35,7 @@ func TestLoadDefaults(t *testing.T) {
 func TestLoadOverridesAndInvalids(t *testing.T) {
 	t.Setenv("APP_ENV", "test")
 	t.Setenv("HTTP_ADDR", ":9090")
+	t.Setenv("PORT", "")
 	t.Setenv("POSTGRES_DSN", "postgres://example")
 	t.Setenv("REDIS_ADDR", "redis:6380")
 	t.Setenv("REDIS_PASSWORD", "secret")
@@ -61,5 +64,16 @@ func TestLoadOverridesAndInvalids(t *testing.T) {
 	}
 	if cfg.AuthAttemptsPerMinute != 99 {
 		t.Fatalf("expected auth attempts override, got %d", cfg.AuthAttemptsPerMinute)
+	}
+}
+
+func TestHTTPAddrFromPort(t *testing.T) {
+	t.Setenv("HTTP_ADDR", "")
+	t.Setenv("PORT", "10000")
+
+	cfg := Load()
+
+	if cfg.HTTPAddr != "0.0.0.0:10000" {
+		t.Fatalf("expected addr from PORT, got %q", cfg.HTTPAddr)
 	}
 }

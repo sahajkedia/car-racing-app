@@ -9,6 +9,7 @@ import (
 	"github.com/hibiken/asynq"
 	"github.com/vjt/spiritualmeet/internal/platform/config"
 	"github.com/vjt/spiritualmeet/internal/platform/queue"
+	"github.com/vjt/spiritualmeet/internal/platform/redisconn"
 )
 
 func main() {
@@ -16,10 +17,7 @@ func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
 
 	server := asynq.NewServer(
-		asynq.RedisClientOpt{
-			Addr:     cfg.RedisAddr,
-			Password: cfg.RedisPassword,
-		},
+		redisconn.AsynqRedisOpt(cfg),
 		asynq.Config{
 			Concurrency: 10,
 		},

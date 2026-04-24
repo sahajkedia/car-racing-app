@@ -1,0 +1,34 @@
+# Render Blueprint: set secrets in the dashboard (POSTGRES_DSN, REDIS_*, JWT_SECRET).
+# https://render.com/docs/blueprint-spec
+#
+# Do not set HTTP_ADDR on the web service so Render's PORT is used (see config httpAddr).
+services:
+  - type: web
+    name: spiritualmeet-api
+    runtime: docker
+    region: oregon
+    plan: starter
+    dockerfilePath: ./infra/Dockerfile
+    dockerContext: .
+    healthCheckPath: /healthz
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: AUTO_MIGRATE
+        value: "true"
+    # POSTGRES_DSN — Aiven Postgres URI with sslmode=require (pgvector extension enabled)
+    # REDIS_ADDR, REDIS_PASSWORD, REDIS_TLS=true — Aiven Redis (TLS)
+    # JWT_SECRET
+
+  - type: worker
+    name: spiritualmeet-worker
+    runtime: docker
+    region: oregon
+    plan: starter
+    dockerfilePath: ./infra/Dockerfile
+    dockerContext: .
+    dockerCommand: /worker
+    envVars:
+      - key: APP_ENV
+        value: production
+    # Same Redis env as the API

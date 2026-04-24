@@ -11,6 +11,7 @@ type Config struct {
 	PostgresDSN              string
 	RedisAddr                string
 	RedisPassword            string
+	RedisTLS                 bool
 	JWTSecret                string
 	AutoMigrate              bool
 	MessageRequestsPerMinute int
@@ -21,16 +22,29 @@ type Config struct {
 func Load() Config {
 	return Config{
 		AppEnv:                   getEnv("APP_ENV", "development"),
-		HTTPAddr:                 getEnv("HTTP_ADDR", ":8080"),
+		HTTPAddr:                 httpAddr(),
 		PostgresDSN:              getEnv("POSTGRES_DSN", "postgres://postgres:postgres@localhost:5432/spiritualmeet?sslmode=disable"),
 		RedisAddr:                getEnv("REDIS_ADDR", "localhost:6379"),
 		RedisPassword:            getEnv("REDIS_PASSWORD", ""),
+		RedisTLS:                 getBoolEnv("REDIS_TLS", false),
 		JWTSecret:                getEnv("JWT_SECRET", "change-me"),
 		AutoMigrate:              getBoolEnv("AUTO_MIGRATE", true),
 		MessageRequestsPerMinute: getIntEnv("MESSAGE_REQUESTS_PER_MINUTE", 12),
 		MessagesPerMinute:        getIntEnv("MESSAGES_PER_MINUTE", 60),
 		AuthAttemptsPerMinute:    getIntEnv("AUTH_ATTEMPTS_PER_MINUTE", 20),
 	}
+}
+
+// httpAddr returns HTTP_ADDR if set; otherwise 0.0.0.0:$PORT when PORT is set (Render, Heroku-style);
+// otherwise :8080.
+func httpAddr() string {
+	if v := os.Getenv("HTTP_ADDR"); v != "" {
+		return v
+	}
+	if p := os.Getenv("PORT"); p != "" {
+		return "0.0.0.0:" + p
+	}
+	return ":8080"
 }
 
 func getEnv(key, fallback string) string {
