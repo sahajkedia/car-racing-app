@@ -1,9 +1,0 @@
-.DS_Store
-.env
-.env.local
-bin/
-dist/
-tmp/
-coverage.out
-go.sum
-ai-engineering-os/
