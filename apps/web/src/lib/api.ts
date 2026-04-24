@@ -1,7 +1,7 @@
 "use client";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ?? "http://localhost:8080";
+  process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ?? "/api";
 
 const TOKEN_STORAGE_KEY = "spiritualmeet_token";
 

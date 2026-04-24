@@ -1,7 +1,13 @@
 [build]
   base = "apps/web"
   command = "npm run build"
-  # Configure NEXT_PUBLIC_API_BASE_URL in Netlify environment variables.
+  # For this branch, frontend calls /api/* and Netlify forwards to Cloudflare Worker.
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+[[redirects]]
+  from = "/api/*"
+  to = "https://REPLACE_WITH_WORKER_DOMAIN.workers.dev/:splat"
+  status = 200
+  force = true

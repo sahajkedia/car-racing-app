@@ -1,0 +1,9 @@
+name = "spiritualmeet-api-gateway"
+main = "src/index.js"
+compatibility_date = "2026-04-24"
+
+[vars]
+# Your real backend origin (Fly/Render/Railway/etc), no trailing slash.
+ORIGIN_API_BASE_URL = "https://replace-with-your-origin-api.example.com"
+# Comma-separated browser origins allowed for direct calls to worker.
+ALLOWED_ORIGINS = "https://replace-with-your-netlify-site.netlify.app"
