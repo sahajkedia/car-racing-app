@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ButtonHTMLAttributes, ReactNode } from "react";
 
 export function SectionCard({
   children,
@@ -48,11 +48,15 @@ export function Pill({
 
 export function PrimaryButton({
   children,
+  ...props
 }: {
   children: ReactNode;
-}) {
+} & ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
-    <button className="inline-flex items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800">
+    <button
+      {...props}
+      className="inline-flex items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70"
+    >
       {children}
     </button>
   );
@@ -60,11 +64,15 @@ export function PrimaryButton({
 
 export function SecondaryButton({
   children,
+  ...props
 }: {
   children: ReactNode;
-}) {
+} & ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
-    <button className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50">
+    <button
+      {...props}
+      className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-70"
+    >
       {children}
     </button>
   );

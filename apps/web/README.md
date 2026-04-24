@@ -1,5 +1,15 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Backend connection
+
+Set `NEXT_PUBLIC_API_BASE_URL` to your API origin before running the app.
+
+Example:
+
+```bash
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8080 npm run dev
+```
+
 ## Getting Started
 
 First, run the development server:

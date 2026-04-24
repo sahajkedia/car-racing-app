@@ -57,6 +57,7 @@ func main() {
 			MessageRequests: cfg.MessageRequestsPerMinute,
 			Messages:        cfg.MessagesPerMinute,
 		},
+		cfg.AllowedOrigins,
 	)
 
 	httpServer := newHTTPServer(cfg.HTTPAddr, server.Router())

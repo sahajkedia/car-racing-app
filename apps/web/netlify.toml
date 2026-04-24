@@ -1,6 +1,7 @@
 [build]
   base = "apps/web"
   command = "npm run build"
+  # Configure NEXT_PUBLIC_API_BASE_URL in Netlify environment variables.
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"

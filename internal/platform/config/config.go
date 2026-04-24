@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"strconv"
+	"strings"
 )
 
 type Config struct {
@@ -17,6 +18,7 @@ type Config struct {
 	MessageRequestsPerMinute int
 	MessagesPerMinute        int
 	AuthAttemptsPerMinute    int
+	AllowedOrigins           []string
 }
 
 func Load() Config {
@@ -32,6 +34,7 @@ func Load() Config {
 		MessageRequestsPerMinute: getIntEnv("MESSAGE_REQUESTS_PER_MINUTE", 12),
 		MessagesPerMinute:        getIntEnv("MESSAGES_PER_MINUTE", 60),
 		AuthAttemptsPerMinute:    getIntEnv("AUTH_ATTEMPTS_PER_MINUTE", 20),
+		AllowedOrigins:           getListEnv("CORS_ALLOWED_ORIGINS", []string{"http://localhost:3000"}),
 	}
 }
 
@@ -76,4 +79,24 @@ func getBoolEnv(key string, fallback bool) bool {
 		return fallback
 	}
 	return value
+}
+
+func getListEnv(key string, fallback []string) []string {
+	raw := os.Getenv(key)
+	if raw == "" {
+		return fallback
+	}
+
+	parts := strings.Split(raw, ",")
+	out := make([]string, 0, len(parts))
+	for _, part := range parts {
+		trimmed := strings.TrimSpace(part)
+		if trimmed != "" {
+			out = append(out, trimmed)
+		}
+	}
+	if len(out) == 0 {
+		return fallback
+	}
+	return out
 }

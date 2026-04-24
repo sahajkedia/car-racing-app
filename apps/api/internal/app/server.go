@@ -31,6 +31,7 @@ type Server struct {
 	queue  JobQueue
 	hub    *realtime.Hub
 	limits RateLimits
+	cors   []string
 }
 
 type RateLimits struct {
@@ -39,7 +40,10 @@ type RateLimits struct {
 	Messages        int
 }
 
-func NewServer(logger *slog.Logger, store Store, redisClient *redis.Client, tokenManager *tokenauth.TokenManager, asynqClient *asynq.Client, hub *realtime.Hub, limits RateLimits) *Server {
+func NewServer(logger *slog.Logger, store Store, redisClient *redis.Client, tokenManager *tokenauth.TokenManager, asynqClient *asynq.Client, hub *realtime.Hub, limits RateLimits, allowedOrigins []string) *Server {
+	if len(allowedOrigins) == 0 {
+		allowedOrigins = []string{"http://localhost:3000"}
+	}
 	return &Server{
 		logger: logger,
 		store:  store,
@@ -48,6 +52,7 @@ func NewServer(logger *slog.Logger, store Store, redisClient *redis.Client, toke
 		queue:  queue.NewEnqueuer(asynqClient),
 		hub:    hub,
 		limits: limits,
+		cors:   allowedOrigins,
 	}
 }
 
@@ -58,6 +63,7 @@ func (s *Server) Router() http.Handler {
 	r.Use(chimiddleware.Logger)
 	r.Use(chimiddleware.Recoverer)
 	r.Use(chimiddleware.Timeout(30 * time.Second))
+	r.Use(apimiddleware.CORS(s.cors))
 
 	r.Get("/healthz", s.handleHealth)
 	r.Get("/readyz", s.handleReady)

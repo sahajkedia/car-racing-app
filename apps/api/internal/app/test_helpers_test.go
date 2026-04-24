@@ -196,6 +196,7 @@ func newTestServer(t *testing.T, st Store) (*Server, *miniredis.Miniredis, *mock
 		tokens: tokenauth.NewTokenManager("test-secret"),
 		queue:  queue,
 		hub:    realtime.NewHub(),
+		cors:   []string{"http://localhost:3000"},
 	}
 	return server, mini, queue
 }
