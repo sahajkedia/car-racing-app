@@ -1,0 +1,28 @@
+# Render.com deployment configuration
+# Deploy: render.com → New → Web Service → Connect GitHub repo
+# Select this file for auto-configuration.
+
+services:
+  - type: web
+    name: oneness-api
+    runtime: python
+    region: singapore   # closest to India
+    plan: free          # Free tier: 512MB RAM, spins down after 15min inactivity
+    buildCommand: pip install -r oneness/backend/requirements.txt
+    startCommand: >
+      PYTHONPATH=/opt/render/project/src
+      uvicorn oneness.backend.app.main:app
+      --host 0.0.0.0
+      --port $PORT
+    envVars:
+      - key: SUPABASE_URL
+        sync: false   # set manually in Render dashboard
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: DEBUG
+        value: "false"
+      - key: CORS_ORIGINS
+        value: '["https://your-app.vercel.app"]'
+    healthCheckPath: /health
