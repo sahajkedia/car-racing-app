@@ -1,0 +1,125 @@
+# flyctl launch added from .gitignore
+# ── Submodule-style directories (kept as subtrees, not tracked here) ──────────
+**/ai-engineering-os
+**/mlops-stack
+
+# ── Graphify knowledge graph outputs ──────────────────────────────────────────
+**/graphify-out
+**/**/graphify-out
+
+# ── Python ────────────────────────────────────────────────────────────────────
+**/__pycache__
+**/**/__pycache__
+**/*.py[cod]
+**/*.pyo
+**/*.pyd
+**/*.egg
+**/*.egg-info
+**/dist
+**/build
+**/.eggs
+**/.mypy_cache
+**/.ruff_cache
+**/.pytest_cache
+**/.coverage
+**/htmlcov
+**/*.log
+
+# Virtual environments
+**/.venv
+**/venv
+**/env
+**/ENV
+
+# ── Environment / secrets ─────────────────────────────────────────────────────
+**/.env
+**/.env.local
+**/.env.*.local
+!**/.env.example
+
+# ── Node / Next.js ────────────────────────────────────────────────────────────
+**/node_modules
+**/.next
+**/out
+**/.turbo
+**/*.tsbuildinfo
+**/next-env.d.ts
+
+# ── OS / editor noise ─────────────────────────────────────────────────────────
+**/.DS_Store
+**/Thumbs.db
+**/.idea
+**/.vscode
+**/*.swp
+**/*.swo
+
+# flyctl launch added from .mypy_cache/.gitignore
+# Automatically created by mypy
+.mypy_cache/**/*
+
+# flyctl launch added from .pytest_cache/.gitignore
+# Created by pytest automatically.
+.pytest_cache/**/*
+
+# flyctl launch added from .venv/.gitignore
+# Created by venv; see https://docs.python.org/3/library/venv.html
+.venv/**/*
+
+# flyctl launch added from mlops-stack/.gitignore
+mlops-stack/**/.DS_Store
+mlops-stack/**/__pycache__
+mlops-stack/**/*.pyc
+mlops-stack/**/.env
+mlops-stack/**/.venv
+mlops-stack/**/*.egg-info
+mlops-stack/**/dist
+mlops-stack/**/build
+mlops-stack/**/*.zip
+
+# flyctl launch added from oneness/backend/.venv/.gitignore
+# Created by venv; see https://docs.python.org/3/library/venv.html
+oneness/backend/.venv/**/*
+
+# flyctl launch added from oneness/frontend/.gitignore
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+oneness/frontend/node_modules
+oneness/frontend/.pnp
+oneness/frontend/**/.pnp.*
+oneness/frontend/**/.yarn/*
+!oneness/frontend/**/.yarn/patches
+!oneness/frontend/**/.yarn/plugins
+!oneness/frontend/**/.yarn/releases
+!oneness/frontend/**/.yarn/versions
+
+# testing
+oneness/frontend/coverage
+
+# next.js
+oneness/frontend/.next
+oneness/frontend/out
+
+# production
+oneness/frontend/build
+
+# misc
+oneness/frontend/**/.DS_Store
+oneness/frontend/**/*.pem
+
+# debug
+oneness/frontend/**/npm-debug.log*
+oneness/frontend/**/yarn-debug.log*
+oneness/frontend/**/yarn-error.log*
+oneness/frontend/**/.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+oneness/frontend/**/.env*
+
+# vercel
+oneness/frontend/**/.vercel
+
+# typescript
+oneness/frontend/**/*.tsbuildinfo
+oneness/frontend/**/next-env.d.ts
+fly.toml
