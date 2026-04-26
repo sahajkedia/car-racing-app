@@ -119,6 +119,17 @@ async def upload_photos(
         }).execute()
         profile_id = resp.data[0]["id"]
 
+    # Remove any previously uploaded photos for this profile so re-submissions
+    # don't hit the unique constraint on (profile_id, position).
+    existing_photos = svc.table("photos").select("storage_key").eq("profile_id", profile_id).execute()
+    if existing_photos.data:
+        old_keys = [r["storage_key"] for r in existing_photos.data]
+        try:
+            svc.storage.from_(PHOTO_BUCKET).remove(old_keys)
+        except Exception:
+            pass  # best-effort; rows are still deleted below
+        svc.table("photos").delete().eq("profile_id", profile_id).execute()
+
     uploaded_urls: list[dict] = []
     for position, file in enumerate(files):
         if file.content_type not in ALLOWED_CONTENT_TYPES:

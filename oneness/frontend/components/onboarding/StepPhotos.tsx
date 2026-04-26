@@ -4,10 +4,10 @@ import { api } from "@/lib/api";
 import { playSound } from "@/lib/sounds";
 
 const SLOT_LABELS = [
+  "Your Aura ✦",
   "Group picture",
   "Snap you clicked",
   "Through your lens",
-  "",
   "",
   "",
 ];
@@ -65,11 +65,14 @@ export default function StepPhotos({ onComplete }: Props) {
       {/* Photo grid */}
       <div className="grid grid-cols-3 gap-3">
         {previews.map((src, i) => (
-          <div key={i} className="relative">
+          <div key={i} className={`relative ${i === 0 ? "col-span-1 row-span-1" : ""}`}>
             {src ? (
               <div
                 className="relative aspect-[3/4] rounded-2xl overflow-hidden"
-                style={{ background: "var(--card-selected)" }}
+                style={{
+                  background: "var(--card-selected)",
+                  ...(i === 0 ? { outline: "2px solid var(--foreground)", outlineOffset: "2px" } : {}),
+                }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={src} alt="" className="w-full h-full object-cover" />
@@ -85,11 +88,17 @@ export default function StepPhotos({ onComplete }: Props) {
               <button
                 onClick={() => { playSound("tap"); inputRefs.current[i]?.click(); }}
                 className="w-full aspect-[3/4] rounded-2xl flex flex-col items-center justify-center gap-2 transition-colors"
-                style={{ background: "var(--card-bg)", border: "1.5px dashed var(--border)" }}
+                style={{
+                  background: "var(--card-bg)",
+                  border: i === 0 ? "1.5px dashed var(--foreground)" : "1.5px dashed var(--border)",
+                }}
               >
                 <span className="text-2xl font-light" style={{ color: "var(--foreground)" }}>+</span>
                 {SLOT_LABELS[i] && (
-                  <span className="text-xs text-center leading-tight px-2" style={{ color: "var(--muted)" }}>
+                  <span
+                    className="text-xs text-center leading-tight px-2"
+                    style={{ color: i === 0 ? "var(--foreground)" : "var(--muted)", fontWeight: i === 0 ? 500 : 400 }}
+                  >
                     {SLOT_LABELS[i]}
                   </span>
                 )}

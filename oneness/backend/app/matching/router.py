@@ -8,7 +8,9 @@ POST /matching/signal
   → Records a behavioral signal (profile_viewed, express_interest, silent_pass)
 """
 from __future__ import annotations
+import json
 import math
+import struct
 from datetime import datetime, timezone
 from typing import Annotated
 
@@ -20,7 +22,7 @@ from app.core.supabase_client import get_service_client
 
 # Scoring engine imports (from oneness package in parent directory)
 import sys, os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../../../../"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../../../"))
 
 from oneness.models.user_profile import (
     UserProfile, Location, SpiritualProfile, CareerProfile,
@@ -46,11 +48,35 @@ def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
 
+def _parse_location(loc) -> tuple[float, float]:
+    """Parse a Supabase location value (dict, JSON string, or PostGIS EWKB hex) to (lat, lon)."""
+    if isinstance(loc, dict):
+        return (loc.get("lat") or 0.0, loc.get("lng") or 0.0)
+    if isinstance(loc, str):
+        try:
+            d = json.loads(loc)
+            if isinstance(d, dict):
+                return (d.get("lat") or 0.0, d.get("lng") or 0.0)
+        except Exception:
+            pass
+        # PostGIS EWKB hex (e.g. "0101000020E6100000...")
+        try:
+            raw = bytes.fromhex(loc)
+            bo = "<" if raw[0] == 1 else ">"
+            wkb_type = struct.unpack(bo + "I", raw[1:5])[0]
+            offset = 5
+            if wkb_type & 0x20000000:  # SRID flag → skip 4 bytes
+                offset += 4
+            lon, lat = struct.unpack(bo + "dd", raw[offset:offset + 16])
+            return (lat, lon)
+        except Exception:
+            pass
+    return (0.0, 0.0)
+
+
 def _row_to_profile(row: dict, user_lat: float | None, user_lon: float | None) -> UserProfile:
     """Convert a Supabase profiles row into a scoring engine UserProfile."""
-    location_raw = row.get("location") or {}
-    cand_lat = location_raw.get("lat") or 0.0
-    cand_lon = location_raw.get("lng") or 0.0
+    cand_lat, cand_lon = _parse_location(row.get("location"))
 
     distance_km = None
     if user_lat and user_lon and cand_lat and cand_lon:
@@ -179,13 +205,8 @@ async def get_sangha(user: CurrentUser):
      .neq("id", profile_id) \
      .execute()
 
-    user_lat = user_row.data.get("location", {})
-    user_lon = user_row.data.get("location", {})
-
     # Convert rows to UserProfile objects with distances
-    user_location = user_row.data.get("location") or {}
-    ulat = user_location.get("lat") or 0.0
-    ulon = user_location.get("lng") or 0.0
+    ulat, ulon = _parse_location(user_row.data.get("location"))
 
     candidate_profiles = [
         _row_to_profile(row, ulat, ulon)
@@ -225,7 +246,6 @@ async def get_sangha(user: CurrentUser):
     scores = [c.score for c in result.candidates]
 
     # Persist Sangha session (for caching and MLOps signal attribution)
-    import json
     svc.table("sangha_sessions").insert({
         "viewer_id": profile_id,
         "candidate_ids": candidate_ids,

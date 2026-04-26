@@ -127,7 +127,7 @@ export default function ProfileDetail({ card, onClose, onExpressInterest, onSile
           <p className="text-zinc-300 text-sm leading-relaxed mb-5">{card.about_me}</p>
         )}
 
-        {/* Tags */}
+        {/* Tags — hidden for now
         <div className="flex flex-wrap gap-2 mb-5">
           <Tag>{IE_LABELS[card.ie_status] ?? card.ie_status}</Tag>
           {card.daily_practices.map((p) => (
@@ -135,6 +135,7 @@ export default function ProfileDetail({ card, onClose, onExpressInterest, onSile
           ))}
           <Tag>{card.diet}</Tag>
         </div>
+        */}
 
         {/* Career */}
         {(card.job_title) && (

@@ -187,7 +187,7 @@ DEFAULT_WEIGHTS = ScoringWeights()
 
 # Maximum distance (km) within which two users can match.
 # Users beyond this radius are excluded by hard filter.
-DEFAULT_MAX_DISTANCE_KM = 100
+DEFAULT_MAX_DISTANCE_KM = 50  # city-level matching (~metro area radius)
 
 # Score decay: full score within NEAR_KM, linear decay to 0 at MAX_DISTANCE_KM
 NEAR_KM = 20

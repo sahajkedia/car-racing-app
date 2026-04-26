@@ -53,9 +53,10 @@ def _height_range_filter(user: UserProfile, candidate: UserProfile) -> FilterRes
 
 def _location_filter(user: UserProfile, candidate: UserProfile) -> FilterResult:
     """Candidate must be within DEFAULT_MAX_DISTANCE_KM of the user.
-    distance_km must be pre-computed and set on the candidate object before filtering."""
+    If distance cannot be computed (missing coordinates), the filter passes —
+    it's better to show a profile than to silently drop it."""
     if candidate.distance_km is None:
-        return FilterResult(False, "candidate distance not computed")
+        return FilterResult(True)  # unknown distance → don't block
     if candidate.distance_km > DEFAULT_MAX_DISTANCE_KM:
         return FilterResult(
             False,

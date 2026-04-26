@@ -3,38 +3,49 @@ import { useState } from "react";
 import { api } from "@/lib/api";
 import { playSound } from "@/lib/sounds";
 
-const SALARY_BRACKETS = ["<5L", "5-10L", "10-20L", "20-40L", "40-80L", "80L+"];
-
 const fieldStyle = {
   background: "var(--card-bg)",
   border: "1.5px solid var(--input-border)",
   color: "var(--foreground)",
 };
 
+const STEP_TITLES = [
+  "Tell us about you",
+  "What do you do?",
+];
+const STEP_SUBS = [
+  "Your path, passions, what lights you up…",
+  "Your job title",
+];
+
 interface Props { onComplete: () => void; }
 
 export default function StepAbout({ onComplete }: Props) {
+  const [step, setStep] = useState(0);
+  const [dir, setDir] = useState<1 | -1>(1);
+  const [animKey, setAnimKey] = useState(0);
+
   const [aboutMe, setAboutMe] = useState("");
   const [jobTitle, setJobTitle] = useState("");
-  const [degree, setDegree] = useState("");
-  const [salary, setSalary] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  async function handleSubmit() {
+  function advance() { setError(""); setDir(1); setAnimKey(k => k + 1); setStep(s => s + 1); }
+  function retreat() { setError(""); setDir(-1); setAnimKey(k => k + 1); setStep(s => s - 1); }
+
+  function handleNext() {
     playSound("tap");
-    setError("");
-    if (!aboutMe.trim()) {
-      setError("About me is required");
-      return;
-    }
+    if (step === 0 && !aboutMe.trim()) { setError("Please write something about yourself"); return; }
+    if (step < STEP_TITLES.length - 1) { advance(); }
+    else { handleSubmit(); }
+  }
+
+  async function handleSubmit() {
     setLoading(true);
     try {
       await api.saveAbout({
         about_me: aboutMe.trim(),
         job_title: jobTitle || undefined,
-        degree: degree || undefined,
-        salary_bracket: salary || undefined,
       });
       onComplete();
     } catch (e: unknown) {
@@ -44,82 +55,74 @@ export default function StepAbout({ onComplete }: Props) {
     }
   }
 
+  const isLast = step === STEP_TITLES.length - 1;
+
   return (
-    <div className="space-y-5 mt-4">
-      <div className="space-y-1.5">
-        <label className="text-sm font-medium flex justify-between" style={{ color: "var(--muted)" }}>
-          <span>About me</span>
-          <span style={{ color: aboutMe.length > 280 ? "var(--foreground)" : "var(--muted)" }}>
-            {aboutMe.length}/300
-          </span>
-        </label>
-        <textarea
-          value={aboutMe}
-          onChange={(e) => setAboutMe(e.target.value.slice(0, 300))}
-          placeholder="What makes you, you? Your path, your passions, what lights you up…"
-          rows={4}
-          className="w-full rounded-2xl px-4 py-3.5 text-base outline-none resize-none"
-          style={fieldStyle}
-        />
+    <div className="mt-4 space-y-6">
+      {/* Progress */}
+      <div className="flex gap-1.5 justify-center">
+        {STEP_TITLES.map((_, i) => (
+          <div key={i} className="h-1 rounded-full transition-all duration-300"
+            style={{ width: i === step ? "28px" : "6px", background: i <= step ? "var(--foreground)" : "var(--border)" }} />
+        ))}
       </div>
 
-      <div className="space-y-1.5">
-        <label className="text-sm font-medium" style={{ color: "var(--muted)" }}>Job title</label>
-        <input
-          type="text"
-          value={jobTitle}
-          onChange={(e) => setJobTitle(e.target.value)}
-          placeholder="Software engineer, doctor, teacher…"
-          className="w-full rounded-2xl px-4 py-3.5 text-base outline-none"
-          style={fieldStyle}
-        />
-      </div>
+      {/* Sliding content */}
+      <div className="overflow-hidden">
+        <div key={animKey} className={dir === 1 ? "slide-from-right" : "slide-from-left"}>
+          <p className="text-lg font-semibold mb-1" style={{ color: "var(--foreground)" }}>{STEP_TITLES[step]}</p>
+          <p className="text-sm mb-4" style={{ color: "var(--muted)" }}>{STEP_SUBS[step]}</p>
 
-      <div className="space-y-1.5">
-        <label className="text-sm font-medium" style={{ color: "var(--muted)" }}>Highest degree</label>
-        <input
-          type="text"
-          value={degree}
-          onChange={(e) => setDegree(e.target.value)}
-          placeholder="B.Tech, MBA, MBBS…"
-          className="w-full rounded-2xl px-4 py-3.5 text-base outline-none"
-          style={fieldStyle}
-        />
-      </div>
+          {step === 0 && (
+            <div className="relative">
+              <textarea
+                value={aboutMe}
+                onChange={e => setAboutMe(e.target.value.slice(0, 300))}
+                placeholder="e.g. I'm an avid meditator who loves trekking and cooking sattvic food…"
+                rows={5}
+                autoFocus
+                className="w-full rounded-2xl px-4 py-3.5 text-base outline-none resize-none"
+                style={fieldStyle}
+              />
+              <span className="absolute bottom-3 right-4 text-xs" style={{ color: "var(--muted)" }}>
+                {aboutMe.length}/300
+              </span>
+            </div>
+          )}
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium" style={{ color: "var(--muted)" }}>Annual income (optional)</label>
-        <div className="grid grid-cols-3 gap-2">
-          {SALARY_BRACKETS.map((b) => (
-            <button
-              key={b}
-              onClick={() => { playSound("tap"); setSalary(b === salary ? "" : b); }}
-              className="py-2.5 rounded-2xl text-sm font-medium transition-all"
-              style={{
-                background: salary === b ? "var(--card-selected)" : "var(--card-bg)",
-                border: "1.5px solid var(--border)",
-                color: "var(--foreground)",
-              }}
-            >
-              {b}
-            </button>
-          ))}
+          {step === 1 && (
+            <input
+              type="text"
+              value={jobTitle}
+              onChange={e => setJobTitle(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && handleNext()}
+              placeholder="Software engineer, doctor, teacher…"
+              autoFocus
+              className="w-full rounded-2xl px-4 py-3.5 text-base outline-none"
+              style={fieldStyle}
+            />
+          )}
+
         </div>
-        <p className="text-xs" style={{ color: "var(--muted)" }}>
-          Never shown publicly. Used only for compatibility matching.
-        </p>
       </div>
 
-      {error && <p className="text-sm" style={{ color: "#E05353" }}>{error}</p>}
+      {error && <p className="text-sm -mt-2" style={{ color: "#E05353" }}>{error}</p>}
 
-      <button
-        onClick={handleSubmit}
-        disabled={loading}
-        className="w-full font-medium py-3.5 rounded-2xl transition-all disabled:opacity-40"
-        style={{ background: "var(--foreground)", color: "var(--background)" }}
-      >
-        {loading ? "Saving…" : "Continue"}
-      </button>
+      {/* Navigation */}
+      <div className="flex gap-3">
+        {step > 0 && (
+          <button type="button" onClick={retreat}
+            className="w-12 h-12 rounded-2xl flex items-center justify-center font-medium transition-all"
+            style={{ background: "var(--card-bg)", border: "1.5px solid var(--border)", color: "var(--foreground)" }}>
+            ←
+          </button>
+        )}
+        <button onClick={handleNext} disabled={loading}
+          className="flex-1 font-medium py-3.5 rounded-2xl transition-all disabled:opacity-40"
+          style={{ background: "var(--foreground)", color: "var(--background)" }}>
+          {loading ? "Saving…" : isLast ? "Continue" : "Next"}
+        </button>
+      </div>
     </div>
   );
 }

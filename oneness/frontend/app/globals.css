@@ -56,6 +56,18 @@ body {
   border: none;
 }
 
+/* Step slide animations */
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(48px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-48px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.slide-from-right { animation: slide-in-right 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
+.slide-from-left  { animation: slide-in-left  0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
+
 .range-thumb {
   -webkit-appearance: none;
   appearance: none;
