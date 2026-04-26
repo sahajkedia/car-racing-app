@@ -14,7 +14,7 @@ COPY scoring            oneness/scoring
 COPY feedback           oneness/feedback
 COPY backend            oneness/backend
 
-ENV PYTHONPATH=/app
+ENV PYTHONPATH=/app:/app/oneness/backend
 
 EXPOSE 8000
 
