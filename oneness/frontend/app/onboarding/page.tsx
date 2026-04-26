@@ -1,10 +1,8 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { api } from "@/lib/api";
 import { playSound } from "@/lib/sounds";
 
-// Step components imported inline for simplicity
 import StepPhotos from "@/components/onboarding/StepPhotos";
 import StepBasics from "@/components/onboarding/StepBasics";
 import StepLocation from "@/components/onboarding/StepLocation";
@@ -15,22 +13,22 @@ import StepSpiritual from "@/components/onboarding/StepSpiritual";
 const STEPS = ["photos", "basics", "location", "intent", "about", "spiritual"] as const;
 type Step = (typeof STEPS)[number];
 
-const STEP_LABELS: Record<Step, string> = {
-  photos: "Your Moodboard",
-  basics: "About You",
-  location: "Where You Are",
-  intent: "What You Seek",
-  about: "Your Story",
-  spiritual: "Your Practice",
+const STEP_HEADINGS: Record<Step, { before: string; italic: string; after?: string; sub?: string }> = {
+  photos: { before: "Your ", italic: "moodboard", sub: "Make them count." },
+  basics: { before: "Tell us about ", italic: "yourself", sub: "" },
+  location: { before: "Where are you ", italic: "based?", sub: "Don't worry, your exact location will not be shared." },
+  intent: { before: "What are you ", italic: "looking", after: " for?", sub: "We know you are tired of answering this." },
+  about: { before: "Your ", italic: "story", sub: "Career, passions, what lights you up." },
+  spiritual: { before: "Your ", italic: "practice", sub: "How you walk the inner path." },
 };
 
 export default function OnboardingPage() {
   const router = useRouter();
   const [step, setStep] = useState<Step>("photos");
-  const [profileId, setProfileId] = useState<string | null>(null);
 
   const stepIndex = STEPS.indexOf(step);
-  const progress = ((stepIndex) / STEPS.length) * 100;
+  const progress = ((stepIndex + 1) / STEPS.length) * 100;
+  const heading = STEP_HEADINGS[step];
 
   function advance(nextStep?: Step) {
     playSound("success");
@@ -42,28 +40,43 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0D0D0D] flex flex-col">
-      {/* Header */}
-      <div className="px-6 pt-8 pb-4">
-        <p className="text-amber-300 text-xs tracking-widest uppercase mb-1">
+    <div className="min-h-screen flex flex-col" style={{ background: "var(--background)" }}>
+      {/* Thin progress bar at very top */}
+      <div className="h-0.5 w-full" style={{ background: "var(--border)" }}>
+        <div
+          className="h-full transition-all duration-500"
+          style={{ width: `${progress}%`, background: "var(--foreground)" }}
+        />
+      </div>
+
+      {/* Step counter */}
+      <div className="px-6 pt-6">
+        <p className="text-xs tracking-widest uppercase" style={{ color: "var(--muted)" }}>
           {stepIndex + 1} of {STEPS.length}
         </p>
-        <h2 className="text-white text-xl font-light">{STEP_LABELS[step]}</h2>
-        {/* Progress bar */}
-        <div className="mt-3 h-1 bg-zinc-800 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-amber-400 rounded-full transition-all duration-500"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
+      </div>
+
+      {/* Heading */}
+      <div className="px-6 pt-3 pb-2">
+        <h1
+          className="text-4xl leading-tight"
+          style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}
+        >
+          {heading.before}
+          <em>{heading.italic}</em>
+          {heading.after ?? ""}
+        </h1>
+        {heading.sub && (
+          <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--muted)" }}>
+            {heading.sub}
+          </p>
+        )}
       </div>
 
       {/* Step content */}
-      <div className="flex-1 px-6 pb-8 overflow-y-auto">
+      <div className="flex-1 px-6 pb-10 overflow-y-auto">
         {step === "photos" && (
-          <StepPhotos
-            onComplete={(pid) => { setProfileId(pid); advance("basics"); }}
-          />
+          <StepPhotos onComplete={(pid) => { void pid; advance("basics"); }} />
         )}
         {step === "basics" && (
           <StepBasics onComplete={() => advance("location")} />

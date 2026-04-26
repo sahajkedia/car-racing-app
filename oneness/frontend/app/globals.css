@@ -1,8 +1,13 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #FAF7F2;
+  --foreground: #1A1A1A;
+  --muted: #8A8A8A;
+  --card-bg: #FFFFFF;
+  --card-selected: #EDE8DF;
+  --border: #E0DAD1;
+  --input-border: #D8D2C9;
 }
 
 @theme inline {
@@ -10,17 +15,56 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-serif: var(--font-playfair);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Drum picker scrollbar hidden */
+.drum-picker {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.drum-picker::-webkit-scrollbar {
+  display: none;
+}
+
+/* Custom range slider styling */
+.range-thumb::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #1A1A1A;
+  cursor: pointer;
+  pointer-events: all;
+  position: relative;
+}
+
+.range-thumb::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #1A1A1A;
+  cursor: pointer;
+  pointer-events: all;
+  border: none;
+}
+
+.range-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  background: transparent;
+  pointer-events: none;
+  position: absolute;
+  left: 0;
+  top: 0;
+  outline: none;
 }

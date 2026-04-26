@@ -5,6 +5,12 @@ import { playSound } from "@/lib/sounds";
 
 const SALARY_BRACKETS = ["<5L", "5-10L", "10-20L", "20-40L", "40-80L", "80L+"];
 
+const fieldStyle = {
+  background: "var(--card-bg)",
+  border: "1.5px solid var(--input-border)",
+  color: "var(--foreground)",
+};
+
 interface Props { onComplete: () => void; }
 
 export default function StepAbout({ onComplete }: Props) {
@@ -38,15 +44,12 @@ export default function StepAbout({ onComplete }: Props) {
     }
   }
 
-  const inputCls =
-    "w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder-zinc-600 focus:outline-none focus:border-amber-400 transition-colors";
-
   return (
     <div className="space-y-5 mt-4">
       <div className="space-y-1.5">
-        <label className="text-zinc-400 text-sm flex justify-between">
+        <label className="text-sm font-medium flex justify-between" style={{ color: "var(--muted)" }}>
           <span>About me</span>
-          <span className={aboutMe.length > 280 ? "text-amber-400" : "text-zinc-600"}>
+          <span style={{ color: aboutMe.length > 280 ? "var(--foreground)" : "var(--muted)" }}>
             {aboutMe.length}/300
           </span>
         </label>
@@ -55,60 +58,67 @@ export default function StepAbout({ onComplete }: Props) {
           onChange={(e) => setAboutMe(e.target.value.slice(0, 300))}
           placeholder="What makes you, you? Your path, your passions, what lights you up…"
           rows={4}
-          className={`${inputCls} resize-none`}
+          className="w-full rounded-2xl px-4 py-3.5 text-base outline-none resize-none"
+          style={fieldStyle}
         />
       </div>
 
       <div className="space-y-1.5">
-        <label className="text-zinc-400 text-sm">Job title</label>
+        <label className="text-sm font-medium" style={{ color: "var(--muted)" }}>Job title</label>
         <input
           type="text"
           value={jobTitle}
           onChange={(e) => setJobTitle(e.target.value)}
           placeholder="Software engineer, doctor, teacher…"
-          className={inputCls}
+          className="w-full rounded-2xl px-4 py-3.5 text-base outline-none"
+          style={fieldStyle}
         />
       </div>
 
       <div className="space-y-1.5">
-        <label className="text-zinc-400 text-sm">Highest degree</label>
+        <label className="text-sm font-medium" style={{ color: "var(--muted)" }}>Highest degree</label>
         <input
           type="text"
           value={degree}
           onChange={(e) => setDegree(e.target.value)}
           placeholder="B.Tech, MBA, MBBS…"
-          className={inputCls}
+          className="w-full rounded-2xl px-4 py-3.5 text-base outline-none"
+          style={fieldStyle}
         />
       </div>
 
       <div className="space-y-2">
-        <label className="text-zinc-400 text-sm">Annual income (optional)</label>
+        <label className="text-sm font-medium" style={{ color: "var(--muted)" }}>Annual income (optional)</label>
         <div className="grid grid-cols-3 gap-2">
           {SALARY_BRACKETS.map((b) => (
             <button
               key={b}
               onClick={() => { playSound("tap"); setSalary(b === salary ? "" : b); }}
-              className={`py-2 rounded-xl text-sm border transition-all ${
-                salary === b
-                  ? "bg-amber-400/10 border-amber-400 text-amber-300"
-                  : "bg-zinc-900 border-zinc-700 text-zinc-400 hover:border-zinc-500"
-              }`}
+              className="py-2.5 rounded-2xl text-sm font-medium transition-all"
+              style={{
+                background: salary === b ? "var(--card-selected)" : "var(--card-bg)",
+                border: "1.5px solid var(--border)",
+                color: "var(--foreground)",
+              }}
             >
               {b}
             </button>
           ))}
         </div>
-        <p className="text-zinc-600 text-xs">Never shown publicly. Used only for compatibility matching.</p>
+        <p className="text-xs" style={{ color: "var(--muted)" }}>
+          Never shown publicly. Used only for compatibility matching.
+        </p>
       </div>
 
-      {error && <p className="text-red-400 text-sm">{error}</p>}
+      {error && <p className="text-sm" style={{ color: "#E05353" }}>{error}</p>}
 
       <button
         onClick={handleSubmit}
         disabled={loading}
-        className="w-full bg-amber-400 text-black font-medium py-3 rounded-xl hover:bg-amber-300 transition-colors disabled:opacity-40"
+        className="w-full font-medium py-3.5 rounded-2xl transition-all disabled:opacity-40"
+        style={{ background: "var(--foreground)", color: "var(--background)" }}
       >
-        {loading ? "Saving…" : "Continue →"}
+        {loading ? "Saving…" : "Continue"}
       </button>
     </div>
   );

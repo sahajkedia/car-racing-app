@@ -15,9 +15,11 @@ Steps:
   GET  /profiles/{profile_id}          → another user's profile card
 """
 from __future__ import annotations
+import io
 import uuid
 from typing import Annotated
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from PIL import Image
 
 from app.core.deps import get_current_user
 from app.core.supabase_client import get_service_client
@@ -34,8 +36,40 @@ router = APIRouter(prefix="/profiles", tags=["profiles"])
 CurrentUser = Annotated[dict, Depends(get_current_user)]
 
 PHOTO_BUCKET = "profile-photos"
-MAX_PHOTO_SIZE_BYTES = 5 * 1024 * 1024  # 5 MB
+MAX_PHOTO_SIZE_BYTES = 5 * 1024 * 1024  # 5 MB raw upload limit (before compression)
 ALLOWED_CONTENT_TYPES = {"image/jpeg", "image/png", "image/webp"}
+
+# Compression settings — images are stored at display-ready resolution.
+# 1 200 px on the long edge looks great on phone screens; JPEG q=82 gives
+# ~4–8× smaller files than typical phone shots with no visible quality loss.
+_MAX_DIMENSION = 1_200   # pixels on the longest side
+_JPEG_QUALITY  = 82      # 75-85 is the sweet spot for quality vs. size
+
+
+def _compress_image(raw: bytes) -> tuple[bytes, str]:
+    """
+    Resize + re-encode the image as JPEG.
+
+    Returns (compressed_bytes, "jpg").  Raises HTTPException on corrupt input.
+    """
+    try:
+        img = Image.open(io.BytesIO(raw))
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Could not decode image. Make sure the file is a valid JPEG, PNG, or WebP.",
+        )
+
+    # Strip EXIF / animation frames — work with a single static frame.
+    img = img.convert("RGB")
+
+    # Downscale only — never upscale.
+    if max(img.width, img.height) > _MAX_DIMENSION:
+        img.thumbnail((_MAX_DIMENSION, _MAX_DIMENSION), Image.LANCZOS)
+
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", quality=_JPEG_QUALITY, optimize=True)
+    return buf.getvalue(), "jpg"
 
 
 def _require_profile(user: CurrentUser) -> str:
@@ -74,12 +108,13 @@ async def upload_photos(
     if profile_id is None:
         resp = svc.table("profiles").insert({
             "user_id": user["user_id"],
-            "name": "",
-            "dob": "2000-01-01",  # placeholder, overwritten in basics step
-            "gender": "male",     # placeholder
+            "name": "_",               # placeholder, overwritten in basics step
+            "dob": "2000-01-01",       # placeholder, overwritten in basics step
+            "gender": "male",          # placeholder
             "interested_in_gender": "female",  # placeholder
             "city": "",
             "state": "",
+            "looking_for": "long_term",  # placeholder, overwritten in intent step
             "onboarding_step": "photos",
         }).execute()
         profile_id = resp.data[0]["id"]
@@ -96,16 +131,16 @@ async def upload_photos(
         if len(content) > MAX_PHOTO_SIZE_BYTES:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"File {file.filename} exceeds 5MB limit."
+                detail=f"File {file.filename} exceeds 5 MB limit."
             )
 
-        ext = file.filename.rsplit(".", 1)[-1] if "." in (file.filename or "") else "jpg"
+        compressed, ext = _compress_image(content)
         key = f"{user['user_id']}/{profile_id}/{uuid.uuid4()}.{ext}"
 
         svc.storage.from_(PHOTO_BUCKET).upload(
             path=key,
-            file=content,
-            file_options={"content-type": file.content_type},
+            file=compressed,
+            file_options={"content-type": "image/jpeg"},
         )
 
         public_url = svc.storage.from_(PHOTO_BUCKET).get_public_url(key)
@@ -228,8 +263,8 @@ async def get_profile(profile_id: str, user: CurrentUser):
         "id, name, dob, gender, city, height_cm, about_me, job_title, "
         "looking_for, ie_status, daily_practices, diet, commitment_level, "
         "last_active_at, photos(id, url, position)"
-    ).eq("id", profile_id).eq("is_active", True).maybe_single().execute()
+    ).eq("id", profile_id).eq("is_active", True).limit(1).execute()
 
     if not resp.data:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Profile not found")
-    return resp.data
+    return resp.data[0]

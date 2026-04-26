@@ -78,7 +78,7 @@ async def send_message(user: CurrentUser, body: SendMessageRequest):
             .eq("from_profile_id", from_id) \
             .eq("to_profile_id", body.to_profile_id) \
             .eq("signal_type", "thread_10plus") \
-            .maybe_single().execute()
+            .limit(1).execute()
 
         if not already.data:
             svc.table("signals").insert({
@@ -149,7 +149,7 @@ async def get_thread(profile_id: str, user: CurrentUser, limit: int = 50):
             .eq("from_profile_id", profile_id) \
             .eq("to_profile_id", pid) \
             .eq("signal_type", "message_replied") \
-            .maybe_single().execute()
+            .limit(1).execute()
         if not already.data:
             svc.table("signals").insert({
                 "from_profile_id": profile_id,

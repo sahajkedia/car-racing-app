@@ -77,8 +77,8 @@ async def verify_otp(body: VerifyOTPRequest):
     # Check if profile exists (determines if this is a new user)
     from app.core.supabase_client import get_service_client
     svc = get_service_client()
-    profile = svc.table("profiles").select("id").eq("user_id", str(user.id)).maybe_single().execute()
-    is_new_user = profile.data is None
+    profile = svc.table("profiles").select("id").eq("user_id", str(user.id)).limit(1).execute()
+    is_new_user = not profile.data
 
     return SessionResponse(
         access_token=session.access_token,

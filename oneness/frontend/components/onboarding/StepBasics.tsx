@@ -9,6 +9,12 @@ const GENDERS = [
   { value: "non_binary", label: "Non-binary" },
 ];
 
+const fieldStyle = {
+  background: "var(--card-bg)",
+  border: "1.5px solid var(--input-border)",
+  color: "var(--foreground)",
+};
+
 interface Props { onComplete: () => void; }
 
 export default function StepBasics({ onComplete }: Props) {
@@ -45,7 +51,8 @@ export default function StepBasics({ onComplete }: Props) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="First name"
-          className={inputCls}
+          className="w-full rounded-2xl px-4 py-3.5 text-base outline-none"
+          style={fieldStyle}
         />
       </Field>
 
@@ -54,7 +61,8 @@ export default function StepBasics({ onComplete }: Props) {
           type="date"
           value={dob}
           onChange={(e) => setDob(e.target.value)}
-          className={inputCls}
+          className="w-full rounded-2xl px-4 py-3.5 text-base outline-none"
+          style={fieldStyle}
         />
       </Field>
 
@@ -86,14 +94,15 @@ export default function StepBasics({ onComplete }: Props) {
         </div>
       </Field>
 
-      {error && <p className="text-red-400 text-sm">{error}</p>}
+      {error && <p className="text-sm" style={{ color: "#E05353" }}>{error}</p>}
 
       <button
         onClick={handleSubmit}
         disabled={loading}
-        className="w-full bg-amber-400 text-black font-medium py-3 rounded-xl hover:bg-amber-300 transition-colors disabled:opacity-40 mt-2"
+        className="w-full font-medium py-3.5 rounded-2xl transition-all disabled:opacity-40 mt-2"
+        style={{ background: "var(--foreground)", color: "var(--background)" }}
       >
-        {loading ? "Saving…" : "Continue →"}
+        {loading ? "Saving…" : "Continue"}
       </button>
     </div>
   );
@@ -102,14 +111,11 @@ export default function StepBasics({ onComplete }: Props) {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-zinc-400 text-sm">{label}</label>
+      <label className="text-sm font-medium" style={{ color: "var(--muted)" }}>{label}</label>
       {children}
     </div>
   );
 }
-
-const inputCls =
-  "w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder-zinc-600 focus:outline-none focus:border-amber-400 transition-colors";
 
 function PillBtn({
   selected, onClick, children,
@@ -117,11 +123,12 @@ function PillBtn({
   return (
     <button
       onClick={onClick}
-      className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all ${
-        selected
-          ? "bg-amber-400 text-black border-amber-400"
-          : "bg-zinc-900 text-zinc-400 border-zinc-700 hover:border-zinc-500"
-      }`}
+      className="flex-1 py-3 rounded-2xl text-sm font-medium transition-all"
+      style={{
+        background: selected ? "var(--card-selected)" : "var(--card-bg)",
+        border: "1.5px solid var(--border)",
+        color: "var(--foreground)",
+      }}
     >
       {children}
     </button>

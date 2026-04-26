@@ -33,7 +33,7 @@ async def get_current_user(
 
     # Fetch the profile_id linked to this user
     svc = get_service_client()
-    profile_resp = svc.table("profiles").select("id").eq("user_id", user_id).maybe_single().execute()
-    profile_id = profile_resp.data["id"] if profile_resp.data else None
+    profile_resp = svc.table("profiles").select("id").eq("user_id", user_id).limit(1).execute()
+    profile_id = profile_resp.data[0]["id"] if profile_resp.data else None
 
     return {"user_id": user_id, "profile_id": profile_id}

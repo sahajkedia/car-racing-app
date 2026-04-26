@@ -71,6 +71,7 @@ export const api = {
   saveIntent: (data: {
     looking_for: string; height_cm: number;
     min_height_cm?: number; max_height_cm?: number;
+    min_age?: number; max_age?: number;
   }) => request("POST", "/profiles/onboarding/intent", data),
 
   saveAbout: (data: {
