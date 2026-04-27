@@ -8,20 +8,20 @@ import StepBasics from "@/components/onboarding/StepBasics";
 import StepLocation from "@/components/onboarding/StepLocation";
 import StepIntent from "@/components/onboarding/StepIntent";
 import StepAbout from "@/components/onboarding/StepAbout";
-const STEPS = ["photos", "basics", "location", "intent", "about"] as const;
+const STEPS = ["basics", "location", "intent", "about", "photos"] as const;
 type Step = (typeof STEPS)[number];
 
 const STEP_HEADINGS: Record<Step, { before: string; italic: string; after?: string; sub?: string }> = {
-  photos:   { before: "Your ",         italic: "moodboard", sub: "Make them count." },
   basics:   { before: "Tell us about ", italic: "yourself", sub: "" },
   location: { before: "Where are you ", italic: "based?",   sub: "Don't worry, your exact location will not be shared." },
   intent:   { before: "What are you ",  italic: "looking",  after: " for?", sub: "We know you are tired of answering this." },
   about:    { before: "Your ",          italic: "story",    sub: "Your passions, what lights you up." },
+  photos:   { before: "Your ",          italic: "moodboard", sub: "Make them count." },
 };
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const [step, setStep] = useState<Step>("photos");
+  const [step, setStep] = useState<Step>("basics");
   const [animKey, setAnimKey] = useState(0);
 
   const stepIndex = STEPS.indexOf(step);
@@ -68,11 +68,11 @@ export default function OnboardingPage() {
 
       {/* Step content */}
       <div className="flex-1 px-6 pb-10 overflow-y-auto">
-        {step === "photos"   && <StepPhotos   onComplete={(pid) => { void pid; advance("basics"); }} />}
         {step === "basics"   && <StepBasics   onComplete={() => advance("location")} />}
         {step === "location" && <StepLocation onComplete={() => advance("intent")} />}
         {step === "intent"   && <StepIntent   onComplete={() => advance("about")} />}
-        {step === "about"    && <StepAbout    onComplete={() => advance()} />}
+        {step === "about"    && <StepAbout    onComplete={() => advance("photos")} />}
+        {step === "photos"   && <StepPhotos   onComplete={() => advance()} />}
       </div>
     </div>
   );

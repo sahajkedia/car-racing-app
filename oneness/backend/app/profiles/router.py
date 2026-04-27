@@ -2,15 +2,15 @@
 Profile endpoints — onboarding steps + photo upload + read.
 
 Onboarding is step-by-step. The frontend sends one step at a time.
-Photos come FIRST (step 1) per product requirement.
+Photos come LAST (step 6) — users build their profile first, then add the moodboard.
 
 Steps:
-  POST /profiles/onboarding/photos     → upload 3-9 photos
-  POST /profiles/onboarding/basics     → name, dob, gender, interested_in
+  POST /profiles/onboarding/basics     → name, dob, gender, interested_in  (creates profile row)
   POST /profiles/onboarding/location   → city/town
   POST /profiles/onboarding/intent     → looking_for, height, height range
   POST /profiles/onboarding/about      → about_me, career, salary
   POST /profiles/onboarding/spiritual  → IE status, practices, diet, commitment
+  POST /profiles/onboarding/photos     → upload 3-9 photos  (marks onboarding complete)
   GET  /profiles/me                    → own profile
   GET  /profiles/{profile_id}          → another user's profile card
 """
@@ -87,14 +87,45 @@ def _update_profile(profile_id: str, data: dict) -> dict:
     return resp.data[0]
 
 
-# ── Step 1: Photos (first!) ──────────────────────────────────────────────────
+# ── Step 1: Basics ───────────────────────────────────────────────────────────
+
+@router.post("/onboarding/basics")
+async def onboarding_basics(user: CurrentUser, body: StepBasics):
+    svc = get_service_client()
+    profile_id = user["profile_id"]
+
+    if profile_id is None:
+        # First step — create the profile row with real data
+        resp = svc.table("profiles").insert({
+            "user_id": user["user_id"],
+            "name": body.name,
+            "dob": body.dob.isoformat(),
+            "gender": body.gender,
+            "interested_in_gender": body.interested_in_gender,
+            "city": "",
+            "state": "",
+            "looking_for": "long_term",
+            "onboarding_step": "location",
+        }).execute()
+    else:
+        _update_profile(profile_id, {
+            "name": body.name,
+            "dob": body.dob.isoformat(),
+            "gender": body.gender,
+            "interested_in_gender": body.interested_in_gender,
+            "onboarding_step": "location",
+        })
+    return {"next_step": "location"}
+
+
+# ── Step 6: Photos (last!) ───────────────────────────────────────────────────
 
 @router.post("/onboarding/photos", status_code=status.HTTP_201_CREATED)
 async def upload_photos(
     user: CurrentUser,
     files: list[UploadFile] = File(...),
 ):
-    """Upload 3–9 profile photos. This is step 1 of onboarding."""
+    """Upload 3–9 profile photos. This is the final onboarding step."""
     if not (3 <= len(files) <= 9):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -102,22 +133,7 @@ async def upload_photos(
         )
 
     svc = get_service_client()
-
-    # Create profile stub if it doesn't exist yet
-    profile_id = user["profile_id"]
-    if profile_id is None:
-        resp = svc.table("profiles").insert({
-            "user_id": user["user_id"],
-            "name": "_",               # placeholder, overwritten in basics step
-            "dob": "2000-01-01",       # placeholder, overwritten in basics step
-            "gender": "male",          # placeholder
-            "interested_in_gender": "female",  # placeholder
-            "city": "",
-            "state": "",
-            "looking_for": "long_term",  # placeholder, overwritten in intent step
-            "onboarding_step": "photos",
-        }).execute()
-        profile_id = resp.data[0]["id"]
+    profile_id = _require_profile(user)
 
     # Remove any previously uploaded photos for this profile so re-submissions
     # don't hit the unique constraint on (profile_id, position).
@@ -166,28 +182,16 @@ async def upload_photos(
 
         uploaded_urls.append({"position": position, "url": public_url})
 
-    # Advance onboarding step
-    _update_profile(profile_id, {"onboarding_step": "basics"})
-
-    return {"profile_id": profile_id, "photos": uploaded_urls, "next_step": "basics"}
-
-
-# ── Step 2: Basics ───────────────────────────────────────────────────────────
-
-@router.post("/onboarding/basics")
-async def onboarding_basics(user: CurrentUser, body: StepBasics):
-    profile_id = _require_profile(user)
+    # Final step — mark profile complete
     _update_profile(profile_id, {
-        "name": body.name,
-        "dob": body.dob.isoformat(),
-        "gender": body.gender,
-        "interested_in_gender": body.interested_in_gender,
-        "onboarding_step": "location",
+        "onboarding_step": "complete",
+        "onboarding_complete": True,
     })
-    return {"next_step": "location"}
+
+    return {"photos": uploaded_urls, "next_step": "complete"}
 
 
-# ── Step 3: Location ─────────────────────────────────────────────────────────
+# ── Step 2: Location ─────────────────────────────────────────────────────────
 
 @router.post("/onboarding/location")
 async def onboarding_location(user: CurrentUser, body: StepLocation):
@@ -207,7 +211,7 @@ async def onboarding_location(user: CurrentUser, body: StepLocation):
     return {"next_step": "intent"}
 
 
-# ── Step 4: Intent (height, looking for) ────────────────────────────────────
+# ── Step 3: Intent (height, looking for) ────────────────────────────────────
 
 @router.post("/onboarding/intent")
 async def onboarding_intent(user: CurrentUser, body: StepIntent):
@@ -223,7 +227,7 @@ async def onboarding_intent(user: CurrentUser, body: StepIntent):
     return {"next_step": "about"}
 
 
-# ── Step 5: About (bio + career) ─────────────────────────────────────────────
+# ── Step 4: About (bio + career) ─────────────────────────────────────────────
 
 @router.post("/onboarding/about")
 async def onboarding_about(user: CurrentUser, body: StepAbout):
@@ -238,7 +242,7 @@ async def onboarding_about(user: CurrentUser, body: StepAbout):
     return {"next_step": "spiritual"}
 
 
-# ── Step 6: Spiritual ────────────────────────────────────────────────────────
+# ── Step 5: Spiritual ────────────────────────────────────────────────────────
 
 @router.post("/onboarding/spiritual")
 async def onboarding_spiritual(user: CurrentUser, body: StepSpiritual):

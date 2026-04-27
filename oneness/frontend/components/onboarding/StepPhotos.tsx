@@ -13,7 +13,7 @@ const SLOT_LABELS = [
 ];
 
 interface Props {
-  onComplete: (profileId: string) => void;
+  onComplete: () => void;
 }
 
 export default function StepPhotos({ onComplete }: Props) {
@@ -49,8 +49,8 @@ export default function StepPhotos({ onComplete }: Props) {
     }
     setLoading(true);
     try {
-      const res = await api.uploadPhotos(filled);
-      onComplete(res.profile_id);
+      await api.uploadPhotos(filled);
+      onComplete();
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Upload failed. Try again.");
     } finally {

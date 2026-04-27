@@ -11,11 +11,9 @@ const fieldStyle = {
 
 const STEP_TITLES = [
   "Tell us about you",
-  "What do you do?",
 ];
 const STEP_SUBS = [
   "Your path, passions, what lights you up…",
-  "Your job title",
 ];
 
 interface Props { onComplete: () => void; }
@@ -26,7 +24,6 @@ export default function StepAbout({ onComplete }: Props) {
   const [animKey, setAnimKey] = useState(0);
 
   const [aboutMe, setAboutMe] = useState("");
-  const [jobTitle, setJobTitle] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -45,7 +42,6 @@ export default function StepAbout({ onComplete }: Props) {
     try {
       await api.saveAbout({
         about_me: aboutMe.trim(),
-        job_title: jobTitle || undefined,
       });
       onComplete();
     } catch (e: unknown) {
@@ -90,18 +86,6 @@ export default function StepAbout({ onComplete }: Props) {
             </div>
           )}
 
-          {step === 1 && (
-            <input
-              type="text"
-              value={jobTitle}
-              onChange={e => setJobTitle(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && handleNext()}
-              placeholder="Software engineer, doctor, teacher…"
-              autoFocus
-              className="w-full rounded-2xl px-4 py-3.5 text-base outline-none"
-              style={fieldStyle}
-            />
-          )}
 
         </div>
       </div>
